@@ -15,7 +15,22 @@ namespace HashCode
                 List<Contributor> contributors;
                 List<Project> projects;
                 
-                readInFile(file, out contributors, out projects);                
+                readInFile(file, out contributors, out projects); 
+
+                int currentTime = 0;
+
+                //TODO: needs a better stopping condition when everything is implemented
+                while(currentTime < 50)
+                {
+                    Console.WriteLine("Sort projects");
+                    projects.ForEach(project => project.SetSortValue(0));
+                    projects.Sort((x,y) => x.CompareTo(y,0)); 
+
+                    foreach (var project in projects)
+                    {
+                        Console.WriteLine(project.name);
+                    }     
+                }                         
             }
             
             Console.WriteLine("Finished processing file!");
