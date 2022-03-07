@@ -147,5 +147,16 @@ namespace HashCode
 
             Console.WriteLine("Finished reading file!");
         }
+
+        static async void WriteOutFile(string filePath, List<Project> projectsDone)
+        {
+            using StreamWriter file = new(filePath.Replace("in", "out"));
+            await file.WriteLineAsync(projectsDone.Count.ToString());
+            foreach(var project in projectsDone)
+            {
+                await file.WriteLineAsync(project.name);
+                await file.WriteLineAsync(string.Join(" ", project.roles.Select(role => role.assignedContributor)));
+            }
+        }
     }
 }
