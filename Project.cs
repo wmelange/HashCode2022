@@ -32,31 +32,44 @@ namespace HashCode
 
         public bool AssignCandidates(ref IEnumerable<Contributor> availableContributors)
         {
+            if(roles.Count() > availableContributors.Count()) 
+            {
+                return false;
+            }            
+            
             List<Contributor> assignment = new List<Contributor>();
-            //Exactly match the levels as much as possible
+            List<Skill> skillsToIncrease = new List<Skill>();
+            //Console.WriteLine("Exactly match the levels as much as possible");
+            Contributor assignedContributor = new Contributor("", new List<Skill>());
             foreach(var role in roles)
             {
                 role.assignedContributor = "";
                 var possibleContributors = availableContributors.Where(contributor => contributor.skillset.Contains(role.skill));
-                role.assignedContributor = checkAndAssign(possibleContributors, ref assignment);      
+                if(checkAndAssign(ref assignedContributor, possibleContributors, ref assignment))
+                {
+                    role.assignedContributor = assignedContributor.name;
+                    skillsToIncrease.Add(assignedContributor.skillset.Find(skill => role.skill.name.Equals(skill.name)));
+                }    
             }
-            //Fill in roles that are not assigned yet
+            //Console.WriteLine("Fill in roles that are not assigned yet");
             foreach(var role in roles.Where(role => role.assignedContributor == ""))
             {
                 var possibleContributors = availableContributors.Where(contributor => 
                     contributor.skillset.Where(skill => (role.skill.name == skill.name) && (role.skill.level <= skill.level)).Count() > 0);
-                role.assignedContributor = checkAndAssign(possibleContributors, ref assignment);                          
+                if(checkAndAssign(ref assignedContributor, possibleContributors, ref assignment))
+                {
+                    role.assignedContributor = assignedContributor.name;                    
+                }                          
             }
+            //Console.WriteLine("Increase level if necessary");
             if(roles.Count() == assignment.Count())
             {
                 foreach(var contributor in assignment)
                 {
                     contributor.daysBusy = duration; 
-                    var skillRole = roles.Where(role => role.assignedContributor.Equals(contributor.name)).ElementAt(0);
-                    var skillContributor = contributor.skillset.Where(skill => skill.name.Equals(skillRole.skill.name)).ElementAt(0);
-                    if(skillContributor.level <= skillRole.skill.level)
+                    foreach(var skill in skillsToIncrease)
                     {
-                        skillContributor.level++;
+                        skill.level++;
                     }
                 }
                 done = true;
@@ -66,7 +79,7 @@ namespace HashCode
             return false;
         }
 
-        public string checkAndAssign(IEnumerable<Contributor> possibleContributors, ref List<Contributor> assignment)
+        public bool checkAndAssign(ref Contributor contributorOut, IEnumerable<Contributor> possibleContributors, ref List<Contributor> assignment)
         {
             //Make sure we didn't use the contributor already
             foreach(var contributor in possibleContributors)
@@ -74,10 +87,11 @@ namespace HashCode
                 if(!assignment.Contains(contributor))
                 {
                     assignment.Add(contributor);
-                    return contributor.name;
+                    contributorOut = contributor;
+                    return true;
                 }
             }     
-            return ""; 
+            return false; 
         }
     }
 }
