@@ -8,7 +8,7 @@ namespace HashCode
     {
         static void Main(string[] args)
         {
-            string[] files = Directory.GetFiles(@"C:\Users\wille\OneDrive\Documents\Hash Code\data", "a*.txt");
+            string[] files = Directory.GetFiles(@"C:\Users\wille\OneDrive\Documents\Hash Code\data", "*.in.txt");
             foreach (var file in files)
             {
                 Console.WriteLine("Start processing " + file);
@@ -32,11 +32,14 @@ namespace HashCode
                 int previousCount = projects.Count;
                 while(projects.Count > 0)
                 {
-                    //Console.WriteLine("Sort projects");
+                    Console.WriteLine($"Current time is {currentTime}");
+                    Console.WriteLine("Sort projects");
+                                        
                     projects.ForEach(project => project.SetSortValue(0));
                     projects.Sort((x,y) => x.CompareTo(y,0)); 
 
-                    //Console.WriteLine("Assign contributors to projects");
+                    Console.WriteLine($"Assign contributors to {projects.Count()} projects");
+                                        
                     //Usefull for assignment
                     foreach(var project in projects)
                     {
@@ -48,19 +51,24 @@ namespace HashCode
                     }
 
                     projects.RemoveAll(project => project.done);
+                    Console.WriteLine("Skip days");
                     
-                    if(projects.Count == previousCount)
+                    if(contributors.Where(contributor => contributor.daysBusy == 0).Count() == contributors.Count())                  
                     {
                         break;
                     }
                     previousCount = projects.Count;
 
                     //TODO make this smarter
-                    currentTime = currentTime + 1;
-                    foreach(var contributor in contributors) 
+                    var busyContributors = contributors.Where(contributor => contributor.daysBusy != 0);
+                    int minStep = busyContributors.Min(contributor => contributor.daysBusy);
+                                            
+                    currentTime = currentTime + minStep;
+                    
+                    foreach(var contributor in busyContributors) 
                     {
-                        contributor.daysBusy = Math.Max(0, contributor.daysBusy - 1);
-                    }
+                        contributor.daysBusy = contributor.daysBusy - minStep;
+                    }  
                 } 
 
                 /*foreach(var project in projectsDone) 
@@ -80,7 +88,7 @@ namespace HashCode
                         Console.WriteLine($"Skill {skill.name} of level {skill.level}");
                     }
                 }*/  
-
+                Console.WriteLine("Start writing output to file");
                 WriteOutFile(file, projectsDone);                    
             }                              
 
