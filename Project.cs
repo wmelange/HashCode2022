@@ -6,9 +6,10 @@ namespace HashCode
         public int duration { get; set; }
         public int score { get; set; }
         public int bestBefore { get; }
-        public List<Skill> roles { get; }
+        public List<Role> roles { get; }
         public double sortValue { get; set; }
-        public Project(string projectName, int projectDuration, int projectScore, int projectBestBefore, List<Skill> projectRoles)
+        public bool done { get; set; }
+        public Project(string projectName, int projectDuration, int projectScore, int projectBestBefore, List<Role> projectRoles)
         {
             name = projectName;
             duration = projectDuration;
@@ -21,7 +22,7 @@ namespace HashCode
             int timeLeft = bestBefore-duration-t;
             int tmpScore = timeLeft <= 0 ? score + timeLeft : score;
             sortValue = tmpScore <= 0 ? -duration : (double) tmpScore / duration / roles.Count / Math.Max(1,timeLeft);
-            Console.WriteLine(name + " has score " + sortValue);
+            //Console.WriteLine(name + " has score " + sortValue);
         }
 
         public int CompareTo(Project y, int t)
