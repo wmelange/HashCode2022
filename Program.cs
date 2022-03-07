@@ -14,29 +14,80 @@ namespace HashCode
                 Console.WriteLine("Start processing " + file);
                 List<Contributor> contributors;
                 List<Project> projects;
+                List<Project> projectsDone = new List<Project>();
                 
-                readInFile(file, out contributors, out projects); 
+                ReadInFile(file, out contributors, out projects); 
+
+                /*foreach(var contributor in contributors) 
+                {
+                    Console.WriteLine($"Contributor {contributor.name} started with skillset:");
+                    foreach(var skill in contributor.skillset)
+                    {
+                        Console.WriteLine($"Skill {skill.name} of level {skill.level}");
+                    }
+                }*/ 
 
                 int currentTime = 0;
 
-                //TODO: needs a better stopping condition when everything is implemented
-                while(currentTime < 50)
+                int previousCount = projects.Count;
+                while(projects.Count > 0)
                 {
-                    Console.WriteLine("Sort projects");
+                    //Console.WriteLine("Sort projects");
                     projects.ForEach(project => project.SetSortValue(0));
                     projects.Sort((x,y) => x.CompareTo(y,0)); 
 
-                    foreach (var project in projects)
+                    //Console.WriteLine("Assign contributors to projects");
+                    //Usefull for assignment
+                    foreach(var project in projects)
                     {
-                        Console.WriteLine(project.name);
-                    }     
-                }                         
-            }
-            
+                        var possibleContributors = contributors.Where(contributor => contributor.daysBusy == 0);
+                        if(project.AssignCandidates(ref possibleContributors))
+                        {
+                            projectsDone.Add(project);
+                        }
+                    }
+
+                    projects.RemoveAll(project => project.done);
+                    
+                    if(projects.Count == previousCount)
+                    {
+                        break;
+                    }
+                    previousCount = projects.Count;
+
+                    //TODO make this smarter
+                    currentTime = currentTime + 1;
+                    foreach(var contributor in contributors) 
+                    {
+                        contributor.daysBusy = Math.Max(0, contributor.daysBusy - 1);
+                    }
+                } 
+
+                /*foreach(var project in projectsDone) 
+                {
+                    Console.WriteLine($"Project {project.name} is done");
+                    foreach(var role in project.roles)
+                    {
+                        Console.WriteLine($"Role {role.skill.name} is done by {role.assignedContributor}");
+                    }
+                } 
+
+                foreach(var contributor in contributors) 
+                {
+                    Console.WriteLine($"Contributor {contributor.name} finished with skillset:");
+                    foreach(var skill in contributor.skillset)
+                    {
+                        Console.WriteLine($"Skill {skill.name} of level {skill.level}");
+                    }
+                }*/  
+
+                WriteOutFile(file, projectsDone);                    
+            }                              
+
             Console.WriteLine("Finished processing file!");
         }
 
-        static void readInFile(string file, out List<Contributor> contributors, out List<Project> projects) 
+        static void ReadInFile(string file, out List<Contributor> contributors, out List<Project> projects) 
         {
             contributors = new List<Contributor>();
             projects = new List<Project>();
@@ -81,13 +132,13 @@ namespace HashCode
                 int bestBefore = Int32.Parse(splittedLine[3]);
                 int nrOfRoles = Int32.Parse(splittedLine[4]);
                 i++;
-                List<Skill> roles = new List<Skill>();
+                List<Role> roles = new List<Role>();
                 for(int j = 0; j < nrOfRoles; j++)
                 {
                     splittedLine = lines[i].Split(' ');
                     string skillName = splittedLine[0];
                     int level = Int32.Parse(splittedLine[1]);
-                    roles.Add(new Skill(skillName, level));
+                    roles.Add(new Role(skillName, level));
                     i++;
                 }
                 projects.Add(new Project(projectName, duration, score, bestBefore, roles));
